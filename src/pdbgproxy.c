@@ -473,6 +473,10 @@ int gdbserver_start(struct pdbg_target *target, uint16_t port)
 
 int handle_gdb(int optind, int argc, char *argv[])
 {
+#if defined(DISABLE_GDBSERVER)
+		printf("The gdbserver is disabled in this build. Rebuild without --disable-gdbserver\n");
+		printf("to enable this functionality.\n");
+#else
 	if (optind + 1 >= argc) {
 		printf("%s: command '%s' requires a port\n", argv[0], argv[optind]);
 		return -1;
@@ -497,5 +501,6 @@ int handle_gdb(int optind, int argc, char *argv[])
 	}
 	assert(target);
 	gdbserver_start(target, port);
+#endif
 	return 0;
 }

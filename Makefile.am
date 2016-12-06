@@ -34,15 +34,23 @@ endif
 
 pdbg_SOURCES = \
 	src/main.c src/cfam.c src/scom.c src/reg.c src/mem.c src/thread.c \
-	src/ring.c src/htm.c src/progress.c src/options_@ARCH@.c \
-	src/pdbgproxy.c $(extra_sources)
+	src/ring.c src/htm.c src/progress.c src/options_@ARCH@.c
+
+pdbg_CFLAGS = -I$(top_srcdir)/libpdbg -Wall -Werror -DGIT_SHA1=\"${GIT_SHA1}\" \
+	      $(ARCH_FLAGS)
+
+if GDBSERVER
+pdbg_SOURCES += \
+	src/pdbgproxy.c \
+	$(extra_sources)
+else
+pdbg_CFLAGS += -DDISABLE_GDBSERVER
+endif
 
 pdbg_LDADD = $(DT_objects) libpdbg.la libfdt.la \
 	-L.libs -lrt
 
 pdbg_LDFLAGS = -Wl,--whole-archive,-lpdbg,--no-whole-archive
-pdbg_CFLAGS = -I$(top_srcdir)/libpdbg -Wall -Werror -DGIT_SHA1=\"${GIT_SHA1}\" \
-	      $(ARCH_FLAGS)
 
 lib_LTLIBRARIES = libpdbg.la libfdt.la
 

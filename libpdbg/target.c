@@ -413,3 +413,19 @@ void pdbg_target_priv_set(struct pdbg_target *target, void *priv)
 {
 	target->priv = priv;
 }
+
+int poll_target(struct pdbg_target *target, uint64_t addr, uint64_t mask, uint64_t *value)
+{
+	uint64_t val, val1;
+	int rc = 0;
+
+	do {
+		pib_read(target, addr, &val);
+		rc = pib_read(target, addr, &val1);
+		if (val != val1)
+			continue;
+	} while ((val & mask) != *value);
+
+	*value = val;
+	return rc;
+}

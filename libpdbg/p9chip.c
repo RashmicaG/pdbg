@@ -44,6 +44,9 @@
 #define P9_SPR_MODE 0x10a84
 #define P9_SCR0_REG 0x10a86
 
+#define HID0_REG	0x10A01
+#define EN_ATTN		PPC_BIT(3);
+
 #define CHIPLET_CTRL0_WOR	0x10
 #define CHIPLET_CTRL0_CLEAR	0x20
 #define  CHIPLET_CTRL0_CTRL_CC_ABIST_MUXSEL_DC	PPC_BIT(0)
@@ -77,6 +80,7 @@
 
 #define RAS_STATUS_TIMEOUT	100 /* 100ms */
 #define SPECIAL_WKUP_TIMEOUT	100 /* 100ms */
+
 
 static uint64_t thread_read(struct thread *thread, uint64_t addr, uint64_t *data)
 {
@@ -421,6 +425,44 @@ static int p9_ram_putxer(struct pdbg_target *thread, uint64_t value)
 
 }
 
+static int p9_get_hid0(struct pdbg_target *chip, uint64_t *value)
+{
+	CHECK_ERR(pib_read(chip, HID0_REG, value));
+	return 0;
+}
+
+static int p9_put_hid0(struct pdbg_target *chip, uint64_t value)
+{
+	CHECK_ERR(pib_write(chip, HID0_REG, value));
+	return 0;
+}
+
+static int p9_enable_attn(struct pdbg_target *target)
+{
+	struct pdbg_target *core;
+	uint64_t hid0;
+
+	core = pdbg_target_parent("core", target);
+	if (core == NULL)
+	{
+		PR_ERROR("CORE NOT FOUND\n");
+		return 1;
+	}
+
+	/* Need to enable the attn instruction in HID0 */
+	if (p9_get_hid0(core, &hid0)) {
+		PR_ERROR("Unable to get HID0\n");
+		return 1;
+	}
+	hid0 |= EN_ATTN;
+
+	if (p9_put_hid0(core, hid0)) {
+		PR_ERROR("Unable to set HID0\n");
+		return 1;
+	}
+	return 0;
+}
+
 static struct thread p9_thread = {
 	.target = {
 		.name = "POWER9 Thread",
@@ -438,6 +480,7 @@ static struct thread p9_thread = {
 	.ram_destroy = p9_ram_destroy,
 	.ram_getxer = p9_ram_getxer,
 	.ram_putxer = p9_ram_putxer,
+	.enable_attn = p9_enable_attn,
 };
 DECLARE_HW_UNIT(p9_thread);
 

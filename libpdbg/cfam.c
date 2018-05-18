@@ -171,7 +171,7 @@ static uint64_t opb_poll(struct opb *opb, uint32_t *read_data)
 		rc = -1;
 	} else if (read_data) {
 		if (!(stat & OPB_STAT_READ_VALID)) {
-			PR_DEBUG("Read successful but no data !\n");
+			PR_ERROR("Read successful but no data 0x%08x!\n", stat);
 			rc = -1;
 		}
 		*read_data = sval & 0xffffffff;

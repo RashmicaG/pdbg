@@ -163,4 +163,14 @@ struct chiplet {
 	int (*getring)(struct chiplet *, uint64_t, int64_t, uint32_t[]);
 };
 #define target_to_chiplet(x) container_of(x, struct chiplet, target)
+
+int read_target(struct pdbg_target *target, uint64_t addr, uint64_t *value);
+int read_next_target(struct pdbg_target *target, uint64_t addr, uint64_t *value);
+int write_target(struct pdbg_target *target, uint64_t addr, uint64_t value);
+int write_next_target(struct pdbg_target *target, uint64_t addr, uint64_t value);
+int poll_target(struct pdbg_target *target, uint64_t addr, uint64_t mask, uint64_t *value);
+void target_class_add(struct pdbg_target_class *class, struct pdbg_target *target, int index);
+void target_del(struct pdbg_target *target);
+struct pdbg_target *pdbg_target_parent(struct pdbg_target *target, const char *class);
+
 #endif

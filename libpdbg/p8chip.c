@@ -82,6 +82,7 @@
 #define  FSP_SPECIAL_WAKEUP		PPC_BIT(0)
 #define EX_PM_GP0_REG			0xf0100
 #define  SPECIAL_WKUP_DONE		PPC_BIT(31)
+#define HID0_REG                 	0x1329c
 
 /* How long (in us) to wait for a special wakeup to complete */
 #define SPECIAL_WKUP_TIMEOUT		10
@@ -426,6 +427,18 @@ static int p8_thread_probe(struct pdbg_target *target)
 	thread->id = (dt_get_address(target, 0, NULL) >> 4) & 0xf;
 	thread->status = get_thread_status(thread);
 
+	return 0;
+}
+
+int p8_get_hid0(struct pdbg_target *chip, uint64_t *value)
+{
+	CHECK_ERR(pib_read(chip, HID0_REG, value));
+	return 0;
+}
+
+int p8_put_hid0(struct pdbg_target *chip, uint64_t value)
+{
+	CHECK_ERR(pib_write(chip, HID0_REG, value));
 	return 0;
 }
 

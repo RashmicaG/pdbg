@@ -42,6 +42,7 @@
 #include "thread.h"
 #include "htm.h"
 #include "options.h"
+#include "pdbgproxy.h"
 
 #define PR_ERROR(x, args...) \
 	pdbg_log(PDBG_ERROR, x, ##args)
@@ -116,6 +117,7 @@ static struct action actions[] = {
 	{ "threadstatus", "", "Print the status of a thread", &thread_status_print },
 	{ "sreset",  "", "Reset", &thread_sreset },
 	{ "regs",  "", "State", &thread_state },
+	{ "gdbserver", "", "", &handle_gdb },
 };
 
 

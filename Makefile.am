@@ -41,7 +41,9 @@ pdbg_SOURCES = \
 	src/progress.c \
 	src/parsers.c \
 	src/optcmd.c \
-	src/options_@ARCH@.c
+	src/options_@ARCH@.c \
+	src/pdbgproxy.c \
+	src/gdb_parser.c
 
 pdbg_LDADD = $(DT_objects) libpdbg.la libfdt.la \
 	-L.libs -lrt
@@ -95,6 +97,10 @@ GEN_V = $(GEN_V_$(V))
 GEN_V_ = $(GEN_V_$(AM_DEFAULT_VERBOSITY))
 GEN_V_0 = @echo "  GEN     " $@;
 
+RAGEL_V = $(RAGEL_V_$(V))
+RAGEL_V_ = $(RAGEL_V_$(AM_DEFAULT_VERBOSITY))
+RAGEL_V_0 = @echo "  RAGEL   " $@;
+
 %.dts: %.dts.m4
 	$(M4_V)$(M4) -I$(dir $<) $< | $(DTC) -I dts -O dts > $@
 
@@ -115,4 +121,7 @@ p9z-fsi.dts: p9z-fsi.dts.m4 p9-fsi.dtsi
 %.dtb.o: %.dtb
 	$(AM_V_CC)$(CC) -c $(srcdir)/template.S -DSYMBOL_PREFIX=$(shell echo $@ | tr '.-' '_') -DFILENAME=\"$<\" -o $@
 
-MOSTLYCLEANFILES = *.dtb *.dts *.dt.h p9-fsi.dtsi
+%.c: %.rl
+	$(RAGEL_V)$(RAGEL) -o $@ $<
+
+MOSTLYCLEANFILES = *.dtb *.dts *.dt.h p9-fsi.dtsi src/gdb_parser.c

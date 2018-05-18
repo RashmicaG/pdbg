@@ -397,6 +397,17 @@ void pdbg_target_probe_all(struct pdbg_target *parent)
 	}
 }
 
+struct pdbg_target *pdbg_target_parent(struct pdbg_target *target, const char *class)
+{
+	struct pdbg_target *tmp;
+	while ((tmp = target->parent))
+	{
+		if (pdbg_target_is_class(tmp, class))
+			return tmp;
+	}
+	return NULL;
+}
+
 bool pdbg_target_is_class(struct pdbg_target *target, const char *class)
 {
 	if (!target || !target->class || !class)
@@ -412,4 +423,20 @@ void *pdbg_target_priv(struct pdbg_target *target)
 void pdbg_target_priv_set(struct pdbg_target *target, void *priv)
 {
 	target->priv = priv;
+}
+
+int poll_target(struct pdbg_target *target, uint64_t addr, uint64_t mask, uint64_t *value)
+{
+	uint64_t val, val1;
+	int rc = 0;
+
+	do {
+		pib_read(target, addr, &val);
+		rc = pib_read(target, addr, &val1);
+		if (val != val1)
+			continue;
+	} while ((val & mask) != *value);
+
+	*value = val;
+	return rc;
 }

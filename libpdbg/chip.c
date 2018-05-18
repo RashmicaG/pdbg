@@ -26,6 +26,7 @@
 #include "bitutils.h"
 #include "debug.h"
 
+
 static uint64_t mfspr(uint64_t reg, uint64_t spr)
 {
 	if (reg > 31)

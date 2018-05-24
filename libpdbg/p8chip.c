@@ -377,6 +377,45 @@ static int p8_ram_destroy(struct thread *thread)
 	return 0;
 }
 
+static int p8_ram_getxer(struct pdbg_target *thread, uint32_t *value)
+{
+	uint32_t fields[] = {0, 0, 0, 0};
+	int i;
+
+	/* On POWER8 we can't get xer with getspr. We can only get IBM
+	 * bits 33-39 and 41-43 using the xer fields. The rest of the
+	 * bits are in latches somewhere. */
+	PR_WARNING("Can only get IBM bits 33-39 and 41-43 of the XER register\n");
+	for (i = 0; i < 4; i++) {
+		CHECK_ERR(ram_getxer_field(thread, &fields[i], i));
+	}
+	*value = fields[0] | fields[1] | fields[2] | fields[3];
+
+	return 0;
+}
+
+static int p8_ram_putxer(struct pdbg_target *thread, uint32_t value)
+{
+	uint32_t fields[] = {0, 0, 0, 0};
+	int i;
+
+	/* On POWER8 we seem to be only able to set IBM bits 33 and 34. This is
+	 * f0 and the first bit of f1, the only bits in the four XER fields
+	 * that are publicly documented.
+	 */
+	PR_WARNING("Can only set IBM bits 33 and 34 of the XER register\n");
+	fields[0] = (value & (0x1 << 30));
+	fields[1] = (value & (0x3 << 28));
+	fields[2] = (value & (0xf << 24));
+	fields[3] = (value & (0x7 << 20 ));
+
+	for (i = 0; i < 4; i++) {
+		CHECK_ERR(ram_putxer_field(thread, fields[i], i));
+	}
+
+	return 0;
+}
+
 /*
  * Initialise all viable threads for ramming on the given core.
  */
@@ -404,6 +443,8 @@ static struct thread p8_thread = {
 	.ram_setup = p8_ram_setup,
 	.ram_instruction = p8_ram_instruction,
 	.ram_destroy = p8_ram_destroy,
+	.ram_getxer = p8_ram_getxer,
+	.ram_putxer = p8_ram_putxer,
 };
 DECLARE_HW_UNIT(p8_thread);
 

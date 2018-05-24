@@ -275,7 +275,6 @@ static int __p9_ram_instruction(struct thread *thread, uint64_t opcode, uint64_t
 	switch(opcode & OPCODE_MASK) {
 	case MTNIA_OPCODE:
 		predecode = 8;
-
 		/* Not currently supported as we can only MTNIA from LR */
 		PR_ERROR("MTNIA is not currently supported\n");
 		break;
@@ -290,7 +289,18 @@ static int __p9_ram_instruction(struct thread *thread, uint64_t opcode, uint64_t
 		break;
 
 	case MFSPR_OPCODE:
-		switch(MFSPR_SPR(opcode)) {
+		switch(MXSPR_SPR(opcode)) {
+		case 1: /* XER */
+			predecode = 4;
+			break;
+		default:
+			predecode = 0;
+			break;
+		}
+		break;
+
+	case MTSPR_OPCODE:
+		switch(MXSPR_SPR(opcode)) {
 		case 1: /* XER */
 			predecode = 4;
 			break;
@@ -373,6 +383,22 @@ static int p9_ram_destroy(struct thread *thread)
 	return 0;
 }
 
+static int p9_ram_getxer(struct pdbg_target *thread, uint32_t *value)
+{
+	CHECK_ERR(ram_getspr(thread, 1, (uint64_t *)value));
+
+	return 0;
+}
+
+static int p9_ram_putxer(struct pdbg_target *thread, uint32_t value)
+{
+	/* On POWER9 we can only set bits 32-34 and 44-63.*/
+	CHECK_ERR(ram_putspr(thread, 1, (uint64_t)value));
+
+	return 0;
+
+}
+
 static struct thread p9_thread = {
 	.target = {
 		.name = "POWER9 Thread",
@@ -387,6 +413,8 @@ static struct thread p9_thread = {
 	.ram_setup = p9_ram_setup,
 	.ram_instruction = p9_ram_instruction,
 	.ram_destroy = p9_ram_destroy,
+	.ram_getxer = p9_ram_getxer,
+	.ram_putxer = p9_ram_putxer,
 };
 DECLARE_HW_UNIT(p9_thread);
 

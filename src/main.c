@@ -96,6 +96,8 @@ static struct action actions[] = {
 	{ "putspr",  "<spr> <value>", "Write Special Purpose Register (SPR)", &handle_spr },
 	{ "getmsr",  "", "Get Machine State Register (MSR)", &handle_msr },
 	{ "putmsr",  "<value>", "Write Machine State Register (MSR)", &handle_msr },
+	{ "getxer",  "", "Get Fixed Point Exception Register (XER)", &handle_xer },
+	{ "putxer",  "<value>", "Write Fixed Point Exception Register (XER)", &handle_xer },
 	{ "getring", "<addr> <len>", "Read a ring. Length must be correct", &handle_getring },
 	{ "start",   "", "Start thread", &thread_start },
 	{ "step",    "<count>", "Set a thread <count> instructions", &thread_step },

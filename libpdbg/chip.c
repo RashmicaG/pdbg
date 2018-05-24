@@ -84,6 +84,46 @@ static uint64_t mtmsr(uint64_t reg)
 	return MTMSR_OPCODE | (reg << 21);
 }
 
+static uint64_t mfxerf(uint64_t reg, uint64_t field)
+{
+	if (reg > 31)
+		PR_ERROR("Invalid register specified for mfxerf\n");
+
+	switch(field) {
+	case 0:
+		return MFXERF0_OPCODE | (reg << 21);
+	case 1:
+		return MFXERF1_OPCODE | (reg << 21);
+	case 2:
+		return MFXERF2_OPCODE | (reg << 21);
+	case 3:
+		return MFXERF3_OPCODE | (reg << 21);
+	default:
+		PR_ERROR("Invalid XER field specified\n");
+	}
+	return 0;
+}
+
+static uint64_t mtxerf(uint64_t reg, uint64_t field)
+{
+	if (reg > 31)
+		PR_ERROR("Invalid register specified for mtxerf\n");
+
+	switch(field) {
+	case 0:
+		return MTXERF0_OPCODE | (reg << 21);
+	case 1:
+		return MTXERF1_OPCODE | (reg << 21);
+	case 2:
+		return MTXERF2_OPCODE | (reg << 21);
+	case 3:
+		return MTXERF3_OPCODE | (reg << 21);
+	default:
+		PR_ERROR("Invalid XER field specified\n");
+	}
+	return 0;
+}
+
 static uint64_t ld(uint64_t rt, uint64_t ds, uint64_t ra)
 {
 	if ((rt > 31) | (ra > 31) | (ds > 0x3fff))
@@ -168,6 +208,7 @@ static int ram_instructions(struct pdbg_target *thread_target, uint64_t *opcodes
 	/* RAM instructions */
 	for (i = -2; i < len + 2; i++) {
 		if (i == -2)
+			/* Save r1 (assumes opcodes don't touch other registers) */
 			opcode = mtspr(277, 1);
 		else if (i == -1)
 			/* Save r0 (assumes opcodes don't touch other registers) */
@@ -309,6 +350,52 @@ int ram_getmem(struct pdbg_target *thread, uint64_t addr, uint64_t *value)
 	return 0;
 }
 
+int ram_getxer_field(struct pdbg_target *thread, uint32_t *value, uint32_t field)
+{
+	uint64_t opcodes[] = {mfxerf(0, field), mtspr(277, 0)};
+	uint64_t results[] = {0, 0};
+
+	CHECK_ERR(ram_instructions(thread, opcodes, results, ARRAY_SIZE(opcodes), 0));
+
+	*value = results[1];
+	return 0;
+}
+
+int ram_getxer(struct pdbg_target *thread_target, uint32_t *value)
+{
+
+	struct thread *thread;
+
+	assert(!strcmp(thread_target->class, "thread"));
+	thread = target_to_thread(thread_target);
+
+	CHECK_ERR(thread->ram_getxer(thread_target, value));
+
+	return 0;
+}
+
+int ram_putxer_field(struct pdbg_target *thread, uint32_t value, uint32_t field)
+{
+	uint64_t opcodes[] = {mfspr(0, 277), mtxerf(0, field)};
+	uint64_t results[] = {value, 0};
+
+	CHECK_ERR(ram_instructions(thread, opcodes, results, ARRAY_SIZE(opcodes), 0));
+
+	return 0;
+}
+
+int ram_putxer(struct pdbg_target *thread_target, uint32_t value)
+{
+	struct thread *thread;
+
+	assert(!strcmp(thread_target->class, "thread"));
+	thread = target_to_thread(thread_target);
+
+	CHECK_ERR(thread->ram_putxer(thread_target, value));
+
+	return 0;
+}
+
 /*
  * Read the given ring from the given chiplet. Result must be large enough to hold ring_len bits.
  */
@@ -368,12 +455,8 @@ int ram_state_thread(struct pdbg_target *thread, struct thread_regs *regs)
 	}
 	printf("CR    : 0x%08" PRIx32 "\n", regs->cr);
 
-#if 0
-	/* TODO: Disabling because reading SPR 0x1 reliably checkstops a P8 */
-	ram_getspr(thread, 0x1, &value);
-	regs->xer = value;
+	ram_getxer(thread, &regs->xer);
 	printf("XER   : 0x%08" PRIx32 "\n", regs->xer);
-#endif
 
 	printf("GPRS  :\n");
 	for (i = 0; i < 32; i++) {

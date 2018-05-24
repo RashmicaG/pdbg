@@ -147,6 +147,10 @@ int ram_stop_thread(struct pdbg_target *target);
 int ram_sreset_thread(struct pdbg_target *target);
 int ram_state_thread(struct pdbg_target *target, struct thread_regs *regs);
 struct thread_state thread_status(struct pdbg_target *target);
+int ram_getxer(struct pdbg_target *thread, uint32_t *value);
+int ram_putxer(struct pdbg_target *thread, uint32_t value);
+int ram_getxer_field(struct pdbg_target *thread, uint32_t *value, uint32_t field);
+int ram_putxer_field(struct pdbg_target *thread, uint32_t value, uint32_t field);
 int getring(struct pdbg_target *chiplet_target, uint64_t ring_addr, uint64_t ring_len, uint32_t result[]);
 
 enum pdbg_sleep_state {PDBG_THREAD_STATE_RUN, PDBG_THREAD_STATE_DOZE,

@@ -86,7 +86,7 @@ extern struct optcmd_cmd
 	optcmd_getnia, optcmd_putnia, optcmd_getmsr, optcmd_putmsr,
 	optcmd_getring, optcmd_start, optcmd_stop, optcmd_step,
 	optcmd_threadstatus, optcmd_sreset, optcmd_regs, optcmd_probe,
-	optcmd_getmem, optcmd_putmem;
+	optcmd_getmem, optcmd_putmem, optcmd_getxer, optcmd_putxer;
 
 static struct optcmd_cmd *cmds[] = {
 	&optcmd_getscom, &optcmd_putscom, &optcmd_getcfam, &optcmd_putcfam,
@@ -94,7 +94,7 @@ static struct optcmd_cmd *cmds[] = {
 	&optcmd_getnia, &optcmd_putnia, &optcmd_getmsr, &optcmd_putmsr,
 	&optcmd_getring, &optcmd_start, &optcmd_stop, &optcmd_step,
 	&optcmd_threadstatus, &optcmd_sreset, &optcmd_regs, &optcmd_probe,
-	&optcmd_getmem, &optcmd_putmem,
+	&optcmd_getmem, &optcmd_putmem, &optcmd_getxer, &optcmd_putxer,
 };
 
 /* Purely for printing usage text. We could integrate printing argument and flag
@@ -114,6 +114,8 @@ static struct action actions[] = {
 	{ "putspr",  "<spr> <value>", "Write Special Purpose Register (SPR)" },
 	{ "getmsr",  "", "Get Machine State Register (MSR)" },
 	{ "putmsr",  "<value>", "Write Machine State Register (MSR)" },
+	{ "getxer",  "", "Get Fixed Point Exception Register (XER)" },
+	{ "putxer",  "<value>", "Write Fixed Point Exception Register (XER)" },
 	{ "getring", "<addr> <len>", "Read a ring. Length must be correct" },
 	{ "start",   "", "Start thread" },
 	{ "step",    "<count>", "Set a thread <count> instructions" },

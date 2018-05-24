@@ -91,8 +91,8 @@ static void get_gprs(uint64_t *stack, void *priv)
 	for (i = 0; i < 32; i++) {
 		if (ram_getgpr(thread_target, i, &regs[i]))
 			PR_ERROR("Error reading register %d\n", i);
-		printf("r%d = 0x%016lx\n", i, regs[i]);
-		snprintf(data + i*16, 17, "%016lx", __builtin_bswap64(regs[i]));
+		printf("r%d = 0x%016" PRIx64 "\n", i, regs[i]);
+		snprintf(data + i*16, 17, "%016" PRIx64 , __builtin_bswap64(regs[i]));
 	}
 
 	send_response(fd, data);
@@ -108,7 +108,23 @@ static void get_spr(uint64_t *stack, void *priv)
 		/* Get PC/NIA */
 		if (ram_getnia(thread_target, &value))
 			PR_ERROR("Error reading NIA\n");
-		snprintf(data, REG_DATA_SIZE, "%016lx", __builtin_bswap64(value));
+		snprintf(data, REG_DATA_SIZE, "%016" PRIx64 , __builtin_bswap64(value));
+		send_response(fd, data);
+		break;
+
+	case 0x41:
+		/* Get MSR */
+		if (ram_getmsr(thread_target, &value))
+			PR_ERROR("Error reading MSR\n");
+		snprintf(data, REG_DATA_SIZE, "%016" PRIx64 , __builtin_bswap64(value));
+		send_response(fd, data);
+		break;
+
+	case 0x42:
+		/* Get CR */
+		if (ram_getcr(thread_target, (uint32_t *)&value))
+			PR_ERROR("Error reading CR \n");
+		snprintf(data, REG_DATA_SIZE, "%016" PRIx64 , __builtin_bswap64(value));
 		send_response(fd, data);
 		break;
 
@@ -116,8 +132,24 @@ static void get_spr(uint64_t *stack, void *priv)
 		/* Get LR */
 		if (ram_getspr(thread_target, 8, &value))
 			PR_ERROR("Error reading LR\n");
-		snprintf(data, REG_DATA_SIZE, "%016lx", __builtin_bswap64(value));
+		snprintf(data, REG_DATA_SIZE, "%016" PRIx64 , __builtin_bswap64(value));
 		send_response(fd, data);
+		break;
+
+	case 0x44:
+		/* Get CTR */
+		if (ram_getspr(thread_target, 9, &value))
+			PR_ERROR("Error reading CTR\n");
+		snprintf(data, REG_DATA_SIZE, "%016" PRIx64 , __builtin_bswap64(value));
+		send_response(fd, data);
+		break;
+
+	case 0x45:
+		/* We can't get the whole XER register in RAM mode as part of it
+ 		 * is in latches that we need to stop the clocks to get. Probably
+ 		 * not helpful to only return part of a register in a debugger so
+ 		 * return unavailable. */
+		send_response(fd, "xxxxxxxxxxxxxxxx");
 		break;
 
 	default:
@@ -241,7 +273,7 @@ static void put_mem(uint64_t *stack, void *priv)
 		goto out;
 	}
 
-	printf("put_mem 0x%016lx = 0x%016lx\n", addr, stack[2]);
+	printf("put_mem 0x%016" PRIx64 " = 0x%016" PRIx64 "\n", addr, stack[2]);
 
 	if (len == 4 && stack[2] == 0x0810827d) {
 		/* According to linux-ppc-low.c gdb only uses this

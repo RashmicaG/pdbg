@@ -19,3 +19,4 @@ int handle_nia(int optind, int argc, char *argv[]);
 int handle_spr(int optind, int argc, char *argv[]);
 int handle_msr(int optind, int argc, char *argv[]);
 int handle_xer(int optind, int argc, char *argv[]);
+int handle_cr(int optind, int argc, char *argv[]);

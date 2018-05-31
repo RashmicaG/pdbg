@@ -103,7 +103,7 @@ static int getprocreg(struct pdbg_target *target, uint32_t index, uint64_t *reg,
 
 	print_proc_reg(target, *reg, value, rc);
 
-	return !rc;
+	return rc;
 }
 
 int handle_gpr(int optind, int argc, char *argv[])

@@ -28,19 +28,19 @@ static int getscom(struct pdbg_target *target, uint32_t index, uint64_t *addr, u
 	uint64_t value;
 
 	if (pib_read(target, *addr, &value))
-		return 0;
+		return 1;
 
 	printf("p%d:0x%" PRIx64 " = 0x%016" PRIx64 "\n", index, *addr, value);
 
-	return 1;
+	return 0;
 }
 
 static int putscom(struct pdbg_target *target, uint32_t index, uint64_t *addr, uint64_t *data)
 {
 	if (pib_write(target, *addr, *data))
-		return 0;
+		return 1;
 
-	return 1;
+	return 0;
 }
 
 

@@ -28,7 +28,7 @@ static int print_thread_status(struct pdbg_target *target, uint32_t index, uint6
 	struct thread_state *status = (struct thread_state *) arg;
 
 	status[index] = thread_status(target);
-	return 1;
+	return 0;
 }
 
 static int print_core_thread_status(struct pdbg_target *core_target, uint32_t index, uint64_t *maxindex, uint64_t *unused1)
@@ -110,22 +110,22 @@ static int print_proc_thread_status(struct pdbg_target *pib_target, uint32_t ind
 
 static int start_thread(struct pdbg_target *thread_target, uint32_t index, uint64_t *unused, uint64_t *unused1)
 {
-	return ram_start_thread(thread_target) ? 0 : 1;
+	return ram_start_thread(thread_target) ? 1 : 0;
 }
 
 static int step_thread(struct pdbg_target *thread_target, uint32_t index, uint64_t *count, uint64_t *unused1)
 {
-	return ram_step_thread(thread_target, *count) ? 0 : 1;
+	return ram_step_thread(thread_target, *count) ? 1 : 0;
 }
 
 static int stop_thread(struct pdbg_target *thread_target, uint32_t index, uint64_t *unused, uint64_t *unused1)
 {
-	return ram_stop_thread(thread_target) ? 0 : 1;
+	return ram_stop_thread(thread_target) ? 1 : 0;
 }
 
 static int sreset_thread(struct pdbg_target *thread_target, uint32_t index, uint64_t *unused, uint64_t *unused1)
 {
-	return ram_sreset_thread(thread_target) ? 0 : 1;
+	return ram_sreset_thread(thread_target) ? 1 : 0;
 }
 
 static int state_thread(struct pdbg_target *thread_target, uint32_t index, uint64_t *unused, uint64_t *unused1)
@@ -133,11 +133,11 @@ static int state_thread(struct pdbg_target *thread_target, uint32_t index, uint6
 	struct thread_regs regs;
 
 	if (ram_state_thread(thread_target, &regs))
-		return 0;
+		return 1;
 
 	dump_stack(&regs);
 
-	return 1;
+	return 0;
 }
 
 int thread_start(int optind, int argc, char *argv[])

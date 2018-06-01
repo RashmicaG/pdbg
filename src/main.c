@@ -672,7 +672,7 @@ static int handle_probe(int optind, int argc, char *argv[])
 	printf("\nNote that only selected targets will be shown above. If none are shown\n"
 			"try adding '-a' to select all targets\n");
 
-	return 1;
+	return 0;
 }
 
 /*

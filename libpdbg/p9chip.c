@@ -255,7 +255,7 @@ static int p9_ram_setup(struct thread *thread)
 		thread_write(thread, P9_SCOMC, 0x0));
 
 	thread->status = p9_get_thread_status(thread);
-
+	thread->ram_is_setup = true;
 	return 0;
 
 out_fail:

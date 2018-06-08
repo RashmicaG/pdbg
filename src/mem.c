@@ -46,7 +46,6 @@ static int getmem(uint64_t addr, uint64_t size, bool ci)
 		if (!__adu_getmem(target, addr, buf, size, ci)) {
 			if (write(STDOUT_FILENO, buf, size) < 0)
 				PR_ERROR("Unable to write stdout.\n");
-			else
 				rc++;
 		} else
 			PR_ERROR("Unable to read memory.\n");

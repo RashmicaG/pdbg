@@ -36,6 +36,8 @@ static int fd = -1;
 enum client_state {IDLE, SIGNAL_WAIT};
 static enum client_state state = IDLE;
 
+static void destroy_client(int dead_fd);
+
 static uint8_t gdbcrc(char *data)
 {
 	uint8_t crc = 0;
@@ -78,6 +80,12 @@ static void set_thread(uint64_t *stack, void *priv)
 static void stop_reason(uint64_t *stack, void *priv)
 {
 	send_response(fd, "S05");
+}
+
+static void disconnect(uint64_t *stack, void *priv)
+{
+	printf("Terminating connection with client. pid %16" PRIi64 "\n", stack[0]);
+	send_response(fd, "OK");
 }
 
 /* 32 registers represented as 16 char hex numbers with null-termination */
@@ -412,6 +420,7 @@ command_cb callbacks[LAST_CMD + 1] = {
 	v_conts,
 	put_mem,
 	interrupt,
+	disconnect,
 	NULL};
 
 int gdbserver_start(struct pdbg_target *target, uint16_t port)

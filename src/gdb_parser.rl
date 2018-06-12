@@ -76,6 +76,9 @@
 
 	set_thread = ('H' any* @{cmd = SET_THREAD;});
 
+	disconnect = ('D' @{cmd = DISCONNECT;}
+		     xdigit+ $hex_digit %push);
+
 	# TODO: We don't actually listen to what's supported
 	q_attached = ('qAttached:' xdigit* @{rsp = "1";});
 	q_C = ('qC' @{rsp = "QC1";});
@@ -91,7 +94,7 @@
 
 	commands = (get_mem | get_gprs | get_spr | stop_reason | set_thread |
 		    q_attached | q_C | q_supported | qf_threadinfo | q_C |
-		    v_contq | v_contc | v_conts | put_mem );
+		    v_contq | v_contc | v_conts | put_mem | disconnect );
 
 	cmd = ((commands & ^'#'*) | ^'#'*) $crc
 	      ('#' xdigit{2} $hex_digit @end);

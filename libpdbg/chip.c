@@ -147,6 +147,16 @@ static uint64_t ld(uint64_t rt, uint64_t ds, uint64_t ra)
 	return LD_OPCODE | (rt << 21) | (ra << 16) | (ds << 2);
 }
 
+static uint64_t std(uint64_t rs, uint64_t ds, uint64_t ra)
+{
+	if ((rs > 31) | (ra > 31) | (ds > 0x3fff)) {
+		PR_ERROR("Invalid register specified\n");
+		exit(1);
+	}
+
+	return STD_OPCODE | (rs << 21) | (ra << 16) | (ds << 2);
+}
+
 struct thread_state thread_status(struct pdbg_target *target)
 {
 	struct thread *thread;
@@ -400,6 +410,15 @@ int ram_getmem(struct pdbg_target *thread, uint64_t addr, uint64_t *value)
 
 	CHECK_ERR(ram_instructions(thread, opcodes, results, ARRAY_SIZE(opcodes), 0));
 	*value = results[3];
+	return 0;
+}
+
+int ram_putmem(struct pdbg_target *thread, uint64_t addr, uint64_t value)
+{
+	uint64_t opcodes[] = {mfspr(0, 277), mfspr(1, 277), std(0, 1, 0)};
+	uint64_t results[] = {value, addr, 0 };
+
+	CHECK_ERR(ram_instructions(thread, opcodes, results, ARRAY_SIZE(opcodes), 0));
 	return 0;
 }
 

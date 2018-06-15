@@ -172,12 +172,15 @@ static void get_spr(uint64_t *stack, void *priv)
  * tables. */
 static uint64_t get_addr(uint64_t addr)
 {
+	printf("get addr for %lx\n", addr);
+
 	if (GETFIELD(PPC_BITMASK(0, 3), addr) == 0xc)
 		/* Assume all 0xc... addresses are part of the linux linear map */
 		addr &= ~PPC_BITMASK(0, 1);
 	else
 		addr = -1UL;
 
+	printf("got addr for %lx\n", addr);
 	return addr;
 }
 
@@ -186,7 +189,7 @@ static void get_mem(uint64_t *stack, void *priv)
 	struct pdbg_target *adu;
 	uint64_t addr, len, linear_map;
 	int i, err = 0;
-	uint64_t data[MAX_DATA/sizeof(uint64_t)];
+	uintptr_t data[MAX_DATA/sizeof(uint64_t)];
 	char result[2*MAX_DATA];
 
 	/* stack[0] is the address and stack[1] is the length */
@@ -246,14 +249,14 @@ static void put_mem(uint64_t *stack, void *priv)
 {
 	struct pdbg_target *adu;
 	struct pdbg_target *core;
-	uint64_t addr, len, hid0;
-	uint8_t *data;
+	uint64_t addr, len, hid0, real_addr;
+	uintptr_t *data;
 	uint8_t attn_opcode[] = {0x00, 0x02, 0x00, 0x00};
-	int err = 0;
+	int i, err = 0;
 
 	addr = stack[0];
 	len = stack[1];
-	data = (uint8_t *) &stack[2];
+	data = (uintptr_t *) &stack[2];
 
 	pdbg_for_each_class_target("adu", adu) {
 		if (pdbg_target_probe(adu) == PDBG_TARGET_ENABLED)
@@ -274,9 +277,24 @@ static void put_mem(uint64_t *stack, void *priv)
 		goto out;
 	}
 
-	addr = get_addr(addr);
-	if (addr == -1UL) {
-		PR_ERROR("TODO: No virtual address support for putmem\n");
+	real_addr = get_addr(addr);
+	if (real_addr == -1UL) {
+		// try again as c addr
+		PR_WARNING("Trying again as C addr\n");
+		addr |= PPC_BITMASK(0, 1);
+		real_addr = get_addr(addr);
+	}
+
+	if (real_addr == -1UL) {
+		PR_WARNING("TODO: No virtual address support for putmem\n");
+		/* Virtual address */
+		for (i = 0; i < len; i += sizeof(uint64_t)) {
+			if (ram_putmem(thread, addr, data[i/sizeof(uint64_t)])) {
+				PR_ERROR("Fault reading memory\n");
+				err = 2;
+				break;
+			}
+		}
 		err = 1;
 		goto out;
 	}
@@ -287,7 +305,7 @@ static void put_mem(uint64_t *stack, void *priv)
 		goto out;
 	}
 
-	printf("put_mem 0x%016" PRIx64 " = 0x%016" PRIx64 "\n", addr, stack[2]);
+	printf("put_mem 0x%016" PRIx64 " = 0x%016" PRIx64 "\n", real_addr, stack[2]);
 
 	if (len == 4 && stack[2] == 0x0810827d) {
 		/* According to linux-ppc-low.c gdb only uses this
@@ -298,7 +316,7 @@ static void put_mem(uint64_t *stack, void *priv)
 		 * TODO: Upstream a patch to gdb so that it uses the
 		 * right opcode for baremetal debug. */
 		PR_INFO("Breakpoint opcode detected, replacing with attn\n");
-		data = attn_opcode;
+		data = (uintptr_t *) attn_opcode;
 
 		/* Need to enable the attn instruction in HID0 */
 		if (p8_get_hid0(core, &hid0)) {
@@ -316,7 +334,7 @@ static void put_mem(uint64_t *stack, void *priv)
 	} else
 		stack[2] = __builtin_bswap64(stack[2]) >> 32;
 
-	if (adu_putmem(adu, addr, data, len)) {
+	if (adu_putmem(adu, real_addr, (uint8_t *)data, len)) {
 		PR_ERROR("Unable to write memory\n");
 		err = 3;
 	}
@@ -325,6 +343,34 @@ out:
 	if (err)
 		send_response(fd, "E01");
 	else
+		send_response(fd, "OK");
+}
+
+static void load(uint64_t *stack, void *priv)
+{
+	uint64_t addr, len;
+	uintptr_t *data;
+	int err = 0;
+
+	addr = stack[0];
+	len = stack[1];
+	data = (uintptr_t *) &stack[2];
+
+	FILE *f;
+	
+	f = fopen("test2", "ab");
+	fwrite(data, len, 1, f);
+	
+	printf("load 0x%016" PRIx64 " of length 0x%016" PRIx64 "\n", addr, len);
+	printf("load 0x%016" PRIx64 " = 0x%016" PRIx64 "\n", addr, *data);
+	fclose(f);
+	//err = 1;
+	goto out;
+out:
+	if (err)
+		send_response(fd, "E01");
+	else
+		send_response(fd, "");
 		send_response(fd, "OK");
 }
 
@@ -435,6 +481,7 @@ command_cb callbacks[LAST_CMD + 1] = {
 	v_contc,
 	v_conts,
 	put_mem,
+	load,
 	interrupt,
 	disconnect,
 	NULL};

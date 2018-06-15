@@ -75,6 +75,7 @@
 #define MFXER_OPCODE (MFSPR_OPCODE | ((1 & 0x1f) << 16) | ((1 & 0x3e0) << 6))
 #define MTXER_OPCODE (MTSPR_OPCODE | ((1 & 0x1f) << 16) | ((1 & 0x3e0) << 6))
 #define LD_OPCODE 0xe8000000UL
+#define STD_OPCODE 0xf8000000UL
 
 #define MXSPR_SPR(opcode) (((opcode >> 16) & 0x1f) | ((opcode >> 6) & 0x3e0))
 

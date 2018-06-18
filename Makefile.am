@@ -9,7 +9,7 @@ ACLOCAL_AMFLAGS = -Im4
 AM_CFLAGS = -I$(top_srcdir)/ccan/array_size -Wall -Werror -O2
 
 if TARGET_ARM
-DT_ARM = p8-fsi.dts p8-i2c.dts \
+DT_ARM = p8-fsi.dts p8-i2c.dts p8-kernel.dts\
 	 p9w-fsi.dts p9r-fsi.dts p9z-fsi.dts p9-kernel.dts
 ARCH_FLAGS="-DTARGET_ARM=1"
 endif

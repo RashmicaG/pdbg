@@ -217,7 +217,7 @@ static int ram_instructions(struct pdbg_target *thread_target, uint64_t *opcodes
 			    uint64_t *results, int len, unsigned int lpar)
 {
 	uint64_t opcode = 0, r0 = 0, r1 = 0, scratch = 0;
-	int i;
+	int i, ret;
 	int exception = 0;
 	struct thread *thread;
 	bool did_setup = false;
@@ -251,8 +251,9 @@ static int ram_instructions(struct pdbg_target *thread_target, uint64_t *opcodes
 			opcode = mfspr(1, 277);
 		}
 
-		if (thread->ram_instruction(thread, opcode, &scratch)) {
-			PR_DEBUG("%s: %d, %016" PRIx64 "\n", __FUNCTION__, __LINE__, opcode);
+		ret = thread->ram_instruction(thread, opcode, &scratch);
+		if (ret) {
+			PR_DEBUG("%s: %d, %016" PRIx64 " ret: %d\n", __FUNCTION__, __LINE__, opcode, ret);
 			exception = 1;
 			if (i >= 0 || i < len)
 				/* skip the rest and attempt to restore r0 and r1 */

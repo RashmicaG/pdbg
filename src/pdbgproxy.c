@@ -27,6 +27,9 @@
 #define PR_ERROR(x, args...) \
 	pdbg_log(PDBG_ERROR, x, ##args)
 
+FILE *succ;
+FILE *fail;
+
 static struct pdbg_target *thread_target = NULL;
 static struct timeval timeout;
 static int poll_interval;
@@ -236,12 +239,15 @@ static void get_mem(uint64_t *stack, void *priv)
 
 out:
 	printf("leaving get mem \n");
-	if (!err)
+	if (!err) {
+		fprintf(succ, "%lx\n", addr);
 		for (i = 0; i < len; i ++) {
 			sprintf(&result[i*2], "%02x", *(((uint8_t *) data) + i));
 		}
-	else
+	} else {
+		fprintf(fail, "%lx\n", addr);
 		sprintf(result, "E%02x", err);
+	}
 
 	send_response(fd, result);
 }
@@ -291,20 +297,18 @@ static void put_mem(uint64_t *stack, void *priv)
 		PR_WARNING("TODO: No virtual address support for putmem\n");
 		/* Virtual address */
 		for (i = 0; i < len; i += sizeof(uint64_t)) {
-			if (ram_putmem(thread, addr, data[i/sizeof(uint64_t)])) {
-				PR_ERROR("Fault reading memory\n");
-				err = 2;
-				break;
+			if (ram_putmem(thread_target, addr, data[i/sizeof(uint64_t)])) {
+				PR_ERROR("Fault writing memory\n");
+				err = 1;
+				goto out;
 			}
 		}
-		err = 1;
-		goto out;
 	}
 
 	if (len > 8) {
 		PR_WARNING("TODO: Only support writing at most 8 bytes of memory at a time\n");
-		//err = 2;
-		//goto out;
+		err = 2;
+		goto out;
 	}
 
 	printf("put_mem 0x%016" PRIx64 " = 0x%016" PRIx64 "\n", real_addr, stack[2]);
@@ -378,6 +382,7 @@ out:
 
 static void v_conts(uint64_t *stack, void *priv)
 {
+	printf("stepping thread\n");
 	ram_step_thread(thread_target, 1);
 	send_response(fd, "S05");
 }
@@ -385,6 +390,7 @@ static void v_conts(uint64_t *stack, void *priv)
 #define VCONT_POLL_DELAY 100000
 static void v_contc(uint64_t *stack, void *priv)
 {
+	printf("starting thread\n");
 	ram_start_thread(thread_target);
 	state = SIGNAL_WAIT;
 }
@@ -543,11 +549,19 @@ int gdbserver_start(struct pdbg_target *target, uint16_t port)
 						close(new);
 					else {
 						create_client(new);
+						succ = fopen("successful_log", "a");
+						fail = fopen("failure_log", "a");
+						if (fail == NULL)
+							printf("failed to open fail log\n");
+						if (succ == NULL)
+							printf("failed to open succ log\n");
 						FD_SET(new, &active_fd_set);
 					}
 				} else {
 					if (read_from_client(i) < 0) {
 						destroy_client(i);
+						fclose(succ);
+						fclose(fail);
 						FD_CLR(i, &active_fd_set);
 					}
 				}

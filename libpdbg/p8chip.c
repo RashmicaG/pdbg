@@ -281,6 +281,7 @@ static int p8_thread_start(struct thread *thread)
 	val |= PPC_BIT(thread->id);
 	CHECK_ERR(pib_write(&chip->target, THREAD_ACTIVE_REG, val));
 
+	printf("thread should have started\n");
 	return 0;
 }
 
@@ -336,18 +337,22 @@ static int p8_ram_instruction(struct thread *thread, uint64_t opcode, uint64_t *
 	if (!thread->ram_is_setup)
 		return 1;
 
+	PR_DEBUG("%s: %d\n", __FUNCTION__, __LINE__);
 	CHECK_ERR(pib_write(&chip->target, SCR0_REG, *scratch));
 
 	/* ram instruction */
 	val = SETFIELD(RAM_THREAD_SELECT, 0ULL, thread->id);
 	val = SETFIELD(RAM_INSTR, val, opcode);
+	PR_DEBUG("%s: %d\n", __FUNCTION__, __LINE__);
 	CHECK_ERR(pib_write(&chip->target, RAM_CTRL_REG, val));
+	PR_DEBUG("%s: %d\n", __FUNCTION__, __LINE__);
 
 	/* wait for completion */
 	do {
 		CHECK_ERR(pib_read(&chip->target, RAM_STATUS_REG, &val));
 	} while (!((val & PPC_BIT(1)) || ((val & PPC_BIT(2)) && (val & PPC_BIT(3)))));
 
+	PR_DEBUG("%s: %d\n", __FUNCTION__, __LINE__);
 	if (!(val & PPC_BIT(1))) {
 		if (GETFIELD(PPC_BITMASK(2,3), val) == 0x3) {
 			return 1;
@@ -356,9 +361,11 @@ static int p8_ram_instruction(struct thread *thread, uint64_t opcode, uint64_t *
 			return 2;
 		}
 	}
+	PR_DEBUG("%s: %d\n", __FUNCTION__, __LINE__);
 
 	/* Save the results */
 	CHECK_ERR(pib_read(&chip->target, SCR0_REG, scratch));
+	PR_DEBUG("%s: %d\n", __FUNCTION__, __LINE__);
 
 	return 0;
 }

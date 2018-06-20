@@ -100,6 +100,7 @@ int adu_getmem_ci(struct pdbg_target *adu_target, uint64_t start_addr,
 int __adu_getmem(struct pdbg_target *adu_target, uint64_t start_addr,
 		 uint8_t *output, uint64_t size, bool ci)
 {
+	printf("in adugetmem\n");
 	struct adu *adu;
 	int rc = 0;
 	uint64_t addr;
@@ -132,6 +133,7 @@ int __adu_getmem(struct pdbg_target *adu_target, uint64_t start_addr,
 
 	pdbg_progress_tick(size, size);
 
+	printf("leaving in adugetmem\n");
 	return rc;
 }
 

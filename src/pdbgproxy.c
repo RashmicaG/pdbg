@@ -235,6 +235,7 @@ static void get_mem(uint64_t *stack, void *priv)
 	}
 
 out:
+	printf("leaving get mem \n");
 	if (!err)
 		for (i = 0; i < len; i ++) {
 			sprintf(&result[i*2], "%02x", *(((uint8_t *) data) + i));
@@ -254,6 +255,7 @@ static void put_mem(uint64_t *stack, void *priv)
 	uint8_t attn_opcode[] = {0x00, 0x02, 0x00, 0x00};
 	int i, err = 0;
 
+	printf("in put mem\n");
 	addr = stack[0];
 	len = stack[1];
 	data = (uintptr_t *) &stack[2];
@@ -300,9 +302,9 @@ static void put_mem(uint64_t *stack, void *priv)
 	}
 
 	if (len > 8) {
-		PR_ERROR("TODO: Only support writing at most 8 bytes of memory at a time\n");
-		err = 2;
-		goto out;
+		PR_WARNING("TODO: Only support writing at most 8 bytes of memory at a time\n");
+		//err = 2;
+		//goto out;
 	}
 
 	printf("put_mem 0x%016" PRIx64 " = 0x%016" PRIx64 "\n", real_addr, stack[2]);

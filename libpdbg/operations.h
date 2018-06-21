@@ -73,6 +73,7 @@
 #define MFXERF2_OPCODE 0x00000210UL
 #define MFXERF3_OPCODE 0x00000310UL
 #define MFOCRF_OPCODE 0x7c100026UL
+#define MTOCRF_OPCODE 0x7C100120UL
 #define MFSPR_MASK (MFSPR_OPCODE | ((0x1f) << 16) | ((0x3e0) << 6))
 #define MFXER_OPCODE (MFSPR_OPCODE | ((1 & 0x1f) << 16) | ((1 & 0x3e0) << 6))
 #define MTXER_OPCODE (MTSPR_OPCODE | ((1 & 0x1f) << 16) | ((1 & 0x3e0) << 6))

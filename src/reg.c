@@ -90,6 +90,8 @@ static int getprocreg(struct pdbg_target *target, uint32_t index, uint64_t *reg,
 		rc = ram_getnia(target, &value);
 	else if (*reg == REG_XER)
 		rc = ram_getxer(target, (uint32_t *)&value);
+	else if (*reg == REG_CR)
+		rc = ram_getcr(target, (uint32_t *)&value);
 	else if (*reg > REG_R31)
 		rc = ram_getspr(target, *reg - REG_R31, &value);
 	else if (*reg >= 0 && *reg <= 31)

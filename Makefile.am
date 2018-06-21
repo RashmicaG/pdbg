@@ -3,7 +3,7 @@ AM_MAKEFLAGS = --no-print-directory
 
 GIT_SHA1 ?= `git --work-tree=$(top_srcdir) --git-dir=$(top_srcdir)/.git describe --always --long --dirty || echo unknown`
 
-bin_PROGRAMS = pdbg
+bin_PROGRAMS = pdbg optcmd_test
 
 ACLOCAL_AMFLAGS = -Im4
 AM_CFLAGS = -I$(top_srcdir)/ccan/array_size -Wall -Werror -O2
@@ -26,9 +26,22 @@ DT_headers = $(DT:.dts=.dt.h)
 
 BUILT_SOURCES = $(DT) $(DT_headers)
 
+optcmd_test_SOURCES = src/optcmd.c src/parsers.c src/tests/optcmd_test.c
+optcmd_test_CFLAGS = -Wall -g
+
 pdbg_SOURCES = \
-	src/main.c src/cfam.c src/scom.c src/reg.c src/mem.c src/thread.c \
-	src/ring.c src/htm.c src/progress.c src/options_@ARCH@.c
+	src/main.c \
+	src/cfam.c \
+	src/scom.c \
+	src/reg.c \
+	src/mem.c \
+	src/thread.c \
+	src/ring.c \
+	src/htm.c \
+	src/progress.c \
+	src/parsers.c \
+	src/optcmd.c \
+	src/options_@ARCH@.c
 
 pdbg_LDADD = $(DT_objects) libpdbg.la libfdt.la \
 	-L.libs -lrt

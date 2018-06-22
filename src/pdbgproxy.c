@@ -28,6 +28,7 @@
 #define PR_ERROR(x, args...) \
 	pdbg_log(PDBG_ERROR, x, ##args)
 
+#ifndef DISABLE_GDBSERVER
 static struct pdbg_target *thread_target = NULL;
 static struct timeval timeout;
 static int poll_interval;
@@ -452,7 +453,7 @@ int gdbserver_start(struct pdbg_target *target, uint16_t port)
 
 	return 1;
 }
-
+#endif
 
 static int gdbserver(uint16_t port)
 {

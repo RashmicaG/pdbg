@@ -506,7 +506,8 @@ static int gdbserver(uint16_t port)
 		if (pdbg_target_probe(target) == PDBG_TARGET_ENABLED)
 			break;
 	}
-	assert(target);
+
+	assert(!strcmp(target->class, "thread"));
 	gdbserver_start(target, port);
 	return 0;
 }

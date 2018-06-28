@@ -499,7 +499,6 @@ int gdbserver_start(struct pdbg_target *target, uint16_t port)
 static int gdbserver(uint16_t port)
 {
 	struct pdbg_target *target;
-	struct thread *t;
 
 	for_each_class_target("thread", target) {
 		if (!target_selected(target))
@@ -509,17 +508,6 @@ static int gdbserver(uint16_t port)
 	}
 
 	assert(!strcmp(target->class, "thread"));
-
-	/* Check that we can setup the core for instruction ramming */
-	t = target_to_thread(target);
-	if(t->ram_setup(t)){
-		PR_ERROR("#####################################\n");
-		PR_ERROR("Unable to set up ram\n");
-		PR_ERROR("#####################################\n");
-		return 1;
-	}
-
-
 	gdbserver_start(target, port);
 	return 0;
 }

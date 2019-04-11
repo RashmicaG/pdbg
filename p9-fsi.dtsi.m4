@@ -21,6 +21,13 @@
 			 include(p9-pib.dts.m4)dnl
 		};
 
+		i2cm@1800 {
+			#address-cells = <0x2>;
+			#size-cells = <0x1>;
+			reg = <0x0 0x1800 0x400>;
+			compatible = "ibm,fsi-i2c-master";
+		};
+
 		hmfsi@100000 {
 			#address-cells = <0x2>;
 			#size-cells = <0x1>;

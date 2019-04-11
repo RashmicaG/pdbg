@@ -123,6 +123,9 @@ struct pdbg_target *pdbg_address_absolute(struct pdbg_target *target, uint64_t *
 int fsi_read(struct pdbg_target *target, uint32_t addr, uint32_t *val);
 int fsi_write(struct pdbg_target *target, uint32_t addr, uint32_t val);
 
+int i2c_read(struct pdbg_target *target, uint8_t addr,	uint16_t size,
+			uint8_t *data);
+
 int pib_read(struct pdbg_target *target, uint64_t addr, uint64_t *val);
 int pib_write(struct pdbg_target *target, uint64_t addr, uint64_t val);
 int pib_wait(struct pdbg_target *pib_dt, uint64_t addr, uint64_t mask, uint64_t data);

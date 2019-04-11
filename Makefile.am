@@ -75,6 +75,7 @@ pdbg_SOURCES = \
 	src/cfam.c \
 	src/htm.c \
 	src/htm.h \
+	src/i2c.c \
 	src/main.c \
 	src/main.h \
 	src/mem.c \
@@ -132,6 +133,10 @@ lib_LTLIBRARIES = libfdt.la libpdbg.la
 
 libfdt_la_CFLAGS = -I$(top_srcdir)/libfdt
 libpdbg_la_CFLAGS = -I$(top_srcdir)/libfdt -Wall -Werror
+if I2CLIB
+pdbg_LDADD += -li2c
+libpdbg_la_CFLAGS += -DENABLE_I2CLIB
+endif
 
 libfdt_la_SOURCES = \
 	libfdt/fdt_addresses.c \
@@ -164,6 +169,7 @@ libpdbg_la_SOURCES = \
 	libpdbg/host.c \
 	libpdbg/htm.c \
 	libpdbg/i2c.c \
+	libpdbg/i2cm.c \
 	libpdbg/kernel.c \
 	libpdbg/libpdbg.c \
 	libpdbg/libpdbg.h \
